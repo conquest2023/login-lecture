@@ -1,53 +1,37 @@
 "use strict";
 
-const fs =require("fs").promises;
+const db=require("../config/db");
       class UserStorage{
-            static _getUserInfo(data,id) {
-                  const users=JSON.parse(data);
-                        const idx=users.id.indexOf(id);
-                        const usersKeys=Object.keys(users); //=>[id,psword,name]
-                        const userInfo=usersKeys.reduce((newUser,info)=>{
-                              newUser[info]=users[info][idx];
-                              return newUser;
-                        },{});
-                        return userInfo;
-                 }
-                 
-
-  static getUsers(...fields) {
-      
-       const users=this._users;
-       const newUsers=fields.reduce((newUsers,field)=>{
-        
-        if(users.hasOwnProperty(field)) {
-              newUsers[field] =users[field];
-        }
-              return newUsers;
-        
-       },{});
-      console.log(newUsers);
-      return newUsers;
-    }
-    static getUserInfo(id) {
-     return  fs
-     .readFile("./src/databases/users.json")
-       .then(data=>{
-           return this._getUserInfo(data, id);
+           
             
-      })
-      .catch(console.error);
-       }
-      
+  
+    static getUserInfo(id) {
+     return new Promise((resolve,reject)=>{
+      const query="SELECT*FROM Hi WHERE id=?;";
+      db.query(query,[id],(err,data)=>{
+             if(err) reject(err);
+             console.log(data[0]);
+            resolve(data[0]);
+     
+       });
+      });
+    }
     
 
-static save(userInfo){
-   const users =this._users;
-   users.id.push(userInfo.id);
-   users.name.push(userInfo.name);
-   users.psword.push(userInfo.psword);
-   return {success:true};
-   
-}
-}
+static async save(userInfo){
+      return new Promise((resolve,reject)=>{
+            const query="INSERT INTO Hi(id,name,psword) VALUES(?,?,?);";
+            db.query(query,[userInfo.id,userInfo.name,userInfo.psword],(err)=>{
+                   if(err) reject(`${err}`);
+                   
+                  resolve({success:true});
+           
+             });
+            });
+          }  
+     
+      }
+
+
 
 module.exports=UserStorage;
